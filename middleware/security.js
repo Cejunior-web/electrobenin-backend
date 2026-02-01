@@ -126,31 +126,15 @@ exports.logSuspiciousActivity = (req, res, next) => {
  * Middleware CORS personnalisé
  */
 exports.corsConfig = (req, res, next) => {
-    const allowedOrigins = [
-        'http://localhost:3000',
-        'http://localhost:5000',
-        'http://localhost:5500',
-        'http://127.0.0.1:5500',  // Live Server
-        'http://127.0.0.1:3000',
-        'null',  // Pour les fichiers locaux (file://)
-        process.env.CLIENT_URL
-    ].filter(Boolean);
-
-    const origin = req.headers.origin;
-
-    // Permettre les requêtes sans origin (fichiers locaux)
-   if (!origin || allowedOrigins.includes(origin) || (origin && origin.endsWith('.vercel.app'))) {
-        res.setHeader('Access-Control-Allow-Origin', origin || '*');
-    }
-
+    // Autoriser toutes les origins (nécessaire pour Vercel serverless)
+    res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
-    res.setHeader('Access-Control-Max-Age', '86400'); // 24 heures
+    res.setHeader('Access-Control-Max-Age', '86400');
 
     // Gérer les requêtes OPTIONS (preflight)
     if (req.method === 'OPTIONS') {
-        return res.sendStatus(200);
+        return res.status(200).end();
     }
 
     next();
