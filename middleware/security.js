@@ -139,7 +139,7 @@ exports.corsConfig = (req, res, next) => {
     const origin = req.headers.origin;
 
     // Permettre les requêtes sans origin (fichiers locaux)
-    if (!origin || allowedOrigins.includes(origin)) {
+   if (!origin || allowedOrigins.includes(origin) || (origin && origin.endsWith('.vercel.app'))) {
         res.setHeader('Access-Control-Allow-Origin', origin || '*');
     }
 
