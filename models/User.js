@@ -33,9 +33,8 @@ const userSchema = new mongoose.Schema({
     },
     phone: {
         type: String,
-        trim: true,
-        match: [
-            /^(\+229)?[0-9]{8,}$/,
+        trim: true
+    }$/,
             'Numéro de téléphone invalide (format: +229XXXXXXXX ou XXXXXXXX)'
         ]
     },
