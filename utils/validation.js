@@ -31,9 +31,9 @@ exports.registerValidation = [
         .withMessage('Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre'),
     
     body('phone')
-        .optional()
-        .matches(/^(\+229)?[0-9]{8,}$/)
-        .withMessage('Numéro de téléphone invalide')
+    .optional({ checkFalsy: true })
+    .matches(/^(\+229)?[0-9]{8}$/)
+    .withMessage('Numéro de téléphone invalide')
 ];
 
 /**
@@ -60,9 +60,9 @@ exports.updateProfileValidation = [
         .isLength({ min: 2, max: 50 }).withMessage('Le nom doit contenir entre 2 et 50 caractères'),
     
     body('phone')
-        .optional()
-        .matches(/^(\+229)?[0-9]{8,}$/)
-        .withMessage('Numéro de téléphone invalide'),
+    .optional({ checkFalsy: true })
+    .matches(/^(\+229)?[0-9]{8}$/)
+    .withMessage('Numéro de téléphone invalide'),
     
     body('address.city')
         .optional()
