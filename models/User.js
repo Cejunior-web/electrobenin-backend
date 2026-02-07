@@ -2,10 +2,6 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-/**
- * Schéma utilisateur avec authentification sécurisée
- * Inclut hash de mot de passe, validation email, et gestion tokens
- */
 const userSchema = new mongoose.Schema({
     name: {
         type: String,
@@ -29,14 +25,11 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: [true, 'Le mot de passe est requis'],
         minlength: [6, 'Le mot de passe doit contenir au moins 6 caractères'],
-        select: false // Ne pas retourner le password par défaut
+        select: false
     },
     phone: {
         type: String,
         trim: true
-    }$/,
-            'Numéro de téléphone invalide (format: +229XXXXXXXX ou XXXXXXXX)'
-        ]
     },
     role: {
         type: String,
@@ -69,14 +62,10 @@ const userSchema = new mongoose.Schema({
     resetPasswordToken: String,
     resetPasswordExpire: Date
 }, {
-    timestamps: true // Ajoute createdAt et updatedAt automatiquement
+    timestamps: true
 });
 
-// ==========================================
-// MIDDLEWARE PRE-SAVE : Hash du mot de passe
-// ==========================================
 userSchema.pre('save', async function(next) {
-    // Ne hash que si le password est modifié
     if (!this.isModified('password')) {
         return next();
     }
@@ -90,23 +79,10 @@ userSchema.pre('save', async function(next) {
     }
 });
 
-// ==========================================
-// MÉTHODES D'INSTANCE
-// ==========================================
-
-/**
- * Comparer le mot de passe fourni avec le hash en base
- * @param {String} enteredPassword - Mot de passe en clair
- * @returns {Boolean}
- */
 userSchema.methods.matchPassword = async function(enteredPassword) {
     return await bcrypt.compare(enteredPassword, this.password);
 };
 
-/**
- * Générer un token JWT signé
- * @returns {String} JWT token
- */
 userSchema.methods.getSignedJwtToken = function() {
     return jwt.sign(
         { id: this._id },
@@ -115,11 +91,7 @@ userSchema.methods.getSignedJwtToken = function() {
     );
 };
 
-/**
- * Incrémenter les tentatives de connexion échouées
- */
 userSchema.methods.incLoginAttempts = function() {
-    // Si le compte est déjà verrouillé et que la période est expirée
     if (this.lockUntil && this.lockUntil < Date.now()) {
         return this.updateOne({
             $set: { loginAttempts: 1 },
@@ -130,7 +102,6 @@ userSchema.methods.incLoginAttempts = function() {
     const updates = { $inc: { loginAttempts: 1 } };
     const maxAttempts = parseInt(process.env.MAX_LOGIN_ATTEMPTS) || 5;
 
-    // Verrouiller le compte après max tentatives (2 heures)
     if (this.loginAttempts + 1 >= maxAttempts && !this.isLocked) {
         updates.$set = { lockUntil: Date.now() + 2 * 60 * 60 * 1000 };
     }
@@ -138,9 +109,6 @@ userSchema.methods.incLoginAttempts = function() {
     return this.updateOne(updates);
 };
 
-/**
- * Réinitialiser les tentatives de connexion après succès
- */
 userSchema.methods.resetLoginAttempts = function() {
     return this.updateOne({
         $set: { loginAttempts: 0, lastLogin: Date.now() },
@@ -148,20 +116,10 @@ userSchema.methods.resetLoginAttempts = function() {
     });
 };
 
-// ==========================================
-// PROPRIÉTÉS VIRTUELLES
-// ==========================================
-
-/**
- * Vérifier si le compte est verrouillé
- */
 userSchema.virtual('isLocked').get(function() {
     return !!(this.lockUntil && this.lockUntil > Date.now());
 });
 
-/**
- * Retourner l'utilisateur sans données sensibles
- */
 userSchema.methods.toSafeObject = function() {
     const obj = this.toObject();
     delete obj.password;
@@ -172,9 +130,6 @@ userSchema.methods.toSafeObject = function() {
     return obj;
 };
 
-// ==========================================
-// INDEXES POUR PERFORMANCE
-// ==========================================
 userSchema.index({ email: 1 });
 userSchema.index({ createdAt: -1 });
 
